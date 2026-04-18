@@ -1382,34 +1382,41 @@
                 ctx.fillStyle = theme.mountainTop;
                 if (themeIndex === 0) { // Græs: Bløde, høje bakker
                     ctx.beginPath();
-                    ctx.moveTo(x - 50, canvas.height);
+                    ctx.moveTo(x - 50, canvas.height + 200);
+                    ctx.lineTo(x - 50, canvas.height);
                     ctx.quadraticCurveTo(x + l3Width/2, canvas.height - 300 - hRand, x + l3Width + 50, canvas.height);
+                    ctx.lineTo(x + l3Width + 50, canvas.height + 200);
                     ctx.fill();
                 } else if (themeIndex === 1) { // Ørken: Skarpe Pyramider
                     ctx.beginPath();
-                    ctx.moveTo(x - 50, canvas.height);
+                    ctx.moveTo(x - 50, canvas.height + 200);
+                    ctx.lineTo(x - 50, canvas.height);
                     ctx.lineTo(x + l3Width/2, canvas.height - 250 - hRand);
                     ctx.lineTo(x + l3Width + 50, canvas.height);
+                    ctx.lineTo(x + l3Width + 50, canvas.height + 200);
                     ctx.fill();
                     ctx.fillStyle = theme.mountainBot;
                     ctx.beginPath();
                     ctx.moveTo(x + l3Width/2, canvas.height - 250 - hRand);
                     ctx.lineTo(x + l3Width + 50, canvas.height);
-                    ctx.lineTo(x + l3Width/2, canvas.height);
+                    ctx.lineTo(x + l3Width + 50, canvas.height + 200);
+                    ctx.lineTo(x + l3Width/2, canvas.height + 200);
                     ctx.fill();
                 } else if (themeIndex === 2) { // Vinter: Takkede isbjerge
                     ctx.beginPath();
-                    ctx.moveTo(x - 20, canvas.height);
+                    ctx.moveTo(x - 20, canvas.height + 200);
+                    ctx.lineTo(x - 20, canvas.height);
                     ctx.lineTo(x + l3Width/2 - 20, canvas.height - 300 - hRand);
                     ctx.lineTo(x + l3Width/2 + 20, canvas.height - 250 - hRand);
                     ctx.lineTo(x + l3Width + 20, canvas.height);
+                    ctx.lineTo(x + l3Width + 20, canvas.height + 200);
                     ctx.fill();
                 } else if (themeIndex === 3) { // Nat: Skyskrabere
                     let bWidth = l3Width * 0.7;
                     let bHeight = 250 + hRand;
-                    ctx.fillRect(x, canvas.height - bHeight, bWidth, bHeight);
+                    ctx.fillRect(x, canvas.height - bHeight, bWidth, bHeight + 200);
                     ctx.fillStyle = theme.mountainBot;
-                    ctx.fillRect(x + bWidth - 20, canvas.height - bHeight, 20, bHeight);
+                    ctx.fillRect(x + bWidth - 20, canvas.height - bHeight, 20, bHeight + 200);
                 }
             }
 
@@ -1425,23 +1432,33 @@
 
                 if (themeIndex === 0 || themeIndex === 2) { 
                     // Græs & Vinter: Bløde buer
+                    let r1 = 180 + hRand/3;
                     ctx.fillStyle = theme.hillBot;
                     ctx.beginPath();
-                    ctx.arc(x + l2Width/2, canvas.height - 50, 180 + hRand/3, Math.PI, 0);
+                    ctx.arc(x + l2Width/2, canvas.height - 50, r1, Math.PI, 0);
+                    ctx.lineTo(x + l2Width/2 + r1, canvas.height + 200);
+                    ctx.lineTo(x + l2Width/2 - r1, canvas.height + 200);
                     ctx.fill();
+
+                    let r2 = 140 + hRand/3;
                     ctx.fillStyle = theme.hillTop;
                     ctx.beginPath();
-                    ctx.arc(x + l2Width/2, canvas.height - 50, 140 + hRand/3, Math.PI, 0);
+                    ctx.arc(x + l2Width/2, canvas.height - 50, r2, Math.PI, 0);
+                    ctx.lineTo(x + l2Width/2 + r2, canvas.height + 200);
+                    ctx.lineTo(x + l2Width/2 - r2, canvas.height + 200);
                     ctx.fill();
                 } else if (themeIndex === 1) { 
                     // Ørken: Klippe-mesas (Flade toppe)
                     ctx.fillStyle = theme.hillBot;
                     ctx.beginPath();
-                    ctx.moveTo(x, canvas.height);
+                    ctx.moveTo(x, canvas.height + 200);
+                    ctx.lineTo(x, canvas.height);
                     ctx.lineTo(x + 60, canvas.height - 120 - hRand/2);
                     ctx.lineTo(x + l2Width - 60, canvas.height - 120 - hRand/2);
                     ctx.lineTo(x + l2Width, canvas.height);
+                    ctx.lineTo(x + l2Width, canvas.height + 200);
                     ctx.fill();
+
                     ctx.fillStyle = theme.hillTop;
                     ctx.fillRect(x + 60, canvas.height - 120 - hRand/2, l2Width - 120, 20);
                 } else if (themeIndex === 3) { 
@@ -1449,7 +1466,7 @@
                     let bWidth = l2Width * 0.8;
                     let bHeight = 150 + hRand;
                     ctx.fillStyle = theme.hillBot;
-                    ctx.fillRect(x, canvas.height - bHeight, bWidth, bHeight);
+                    ctx.fillRect(x, canvas.height - bHeight, bWidth, bHeight + 200);
                     
                     for (let wy = canvas.height - bHeight + 20; wy < canvas.height - 50; wy += 35) {
                         for (let wx = x + 15; wx < x + bWidth - 15; wx += 25) {
