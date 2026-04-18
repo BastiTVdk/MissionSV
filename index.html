@@ -21,8 +21,8 @@
 
         #gameCanvas {
             display: block;
-            width: 100%;
-            height: 100%;
+            /* Fjernet width/height 100% her, da vi nu styrer det knivskarpt med JavaScript 
+               for at undgå at lærredet strækker sig ned under knapperne */
         }
 
         /* Brugergrænseflade (UI) for menuer */
@@ -227,6 +227,19 @@
             #hudLeft { top: 5px; left: 5px; padding: 10px; font-size: 16px; }
             #hudRight { top: 5px; right: 5px; padding: 10px; max-width: 180px; font-size: 11px;}
             h1 { font-size: 2.2rem; }
+        }
+
+        /* FIX TIL VANDRET MODE (Når skærmen mangler højde) */
+        @media (max-height: 500px) {
+            .menu-box {
+                padding: 15px;
+                max-height: 85vh; /* Sørger for at menuen ikke ryger ud af skærmen */
+                overflow-y: auto; /* Gør det muligt at scrolle inde i boksen */
+            }
+            h1 { font-size: 1.8rem; margin-bottom: 5px; }
+            .kill-board { margin: 10px 0; padding: 10px; font-size: 0.9rem; }
+            p { font-size: 0.9rem; margin: 5px 0; }
+            .btn { padding: 10px 15px; font-size: 1rem; margin: 4px; }
         }
 
         .touch-btn {
@@ -658,18 +671,40 @@
                    r1.y + (r1.height || r1.h) > r2.y;
         }
 
-        // Justeret resize-funktion der bruger visuel viewport og gør plads til controller i bunden!
+        // Justeret resize-funktion
         function resizeCanvas() {
-            canvas.width = window.innerWidth;
+            let oldHeight = canvas.height;
             
-            // Brug visualViewport for at få præcis højde på moderne mobiler
+            canvas.width = window.innerWidth;
             let vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
             
-            // Hvis det er en telefon/tablet på højkant (portrait mode), gør vi plads til controlleren
+            // Hvis vi er på en touch skærm og den er lodret
             if (vh > window.innerWidth && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
-                canvas.height = vh - 140; // Trækker nu 140px fra for ekstra luft under knapperne
+                canvas.height = vh - 140; 
             } else {
                 canvas.height = vh;
+            }
+
+            // Tvinger CSS-højden til at være eksakt det samme som canvas-højden
+            // På den måde bliver bunden af lærredet IKKE strakt ned under kontrolknapperne.
+            canvas.style.width = canvas.width + 'px';
+            canvas.style.height = canvas.height + 'px';
+            
+            // Fiks for rotation midt i et spil: Flyt spiller og bane op/ned, hvis højden har ændret sig
+            let heightDiff = canvas.height - oldHeight;
+            if (heightDiff !== 0 && oldHeight > 0 && gameState === 'playing') {
+                player.y += heightDiff;
+                platforms.forEach(p => p.y += heightDiff);
+                coins.forEach(c => c.y += heightDiff);
+                bushes.forEach(b => b.y += heightDiff);
+                enemies.forEach(e => e.y += heightDiff);
+                springboards.forEach(s => s.y += heightDiff);
+                assignments.forEach(a => { a.y += heightDiff; a.startY += heightDiff; });
+                bombs.forEach(b => b.y += heightDiff);
+                shurikenPickups.forEach(s => s.y += heightDiff);
+                projectiles.forEach(p => p.y += heightDiff);
+                playerProjectiles.forEach(p => p.y += heightDiff);
+                popEffects.forEach(p => p.y += heightDiff);
             }
             
             if (gameState === 'playing') draw();
