@@ -422,7 +422,7 @@
         // Visuel "Juice" variable
         let screenShake = 0;
 
-        // Tema Data
+        // Tema Data: Designet med mere spændende farver!
         const themes = [
             { // 0: Klassisk Græs (Levels 1, 5, 9...)
                 isDesert: false, isWinter: false, isNight: false,
@@ -435,26 +435,26 @@
             { // 1: Ørken / Grus (Levels 2, 6, 10...)
                 isDesert: true, isWinter: false, isNight: false,
                 skyTop: '#FF8C00', skyBot: '#FFD700',
-                mountainTop: '#A0522D', mountainBot: '#8B4513',
-                hillTop: '#EDC9AF', hillBot: '#D2B48C',
-                groundTop: '#E6C280', groundBot1: '#8B4513', groundBot2: '#5C2E0B',
-                groundAccent: '#F5DEB3', bush: '#8B4513', cloud: 'rgba(255, 255, 255, 0.6)'
+                mountainTop: '#B85E26', mountainBot: '#8B4513',
+                hillTop: '#E6C280', hillBot: '#C29B62',
+                groundTop: '#D2B48C', groundBot1: '#8B4513', groundBot2: '#5C2E0B',
+                groundAccent: '#DEB887', bush: '#5C2E0B', cloud: 'rgba(255, 255, 255, 0.6)'
             },
             { // 2: Vinter / Sne (Levels 3, 7, 11...)
                 isDesert: false, isWinter: true, isNight: false,
                 skyTop: '#83a4d4', skyBot: '#b6fbff',
-                mountainTop: '#ADD8E6', mountainBot: '#87CEFA',
-                hillTop: '#E0FFFF', hillBot: '#B0E0E6',
+                mountainTop: '#B0E0E6', mountainBot: '#87CEFA',
+                hillTop: '#FFFFFF', hillBot: '#E0FFFF',
                 groundTop: '#FFFFFF', groundBot1: '#4682B4', groundBot2: '#2F4F4F',
-                groundAccent: '#F0FFFF', bush: '#E0FFFF', cloud: 'rgba(255, 255, 255, 0.95)'
+                groundAccent: '#F0FFFF', bush: '#ADD8E6', cloud: 'rgba(255, 255, 255, 0.95)'
             },
             { // 3: Nat / Asfalt / By (Levels 4, 8, 12...)
                 isDesert: false, isWinter: false, isNight: true,
                 skyTop: '#1A1A2E', skyBot: '#2C3E50',
-                mountainTop: '#111111', mountainBot: '#000000',
-                hillTop: '#222233', hillBot: '#111122',
+                mountainTop: '#0F0F1A', mountainBot: '#05050A',
+                hillTop: '#222233', hillBot: '#1A1A28',
                 groundTop: '#555555', groundBot1: '#222222', groundBot2: '#111111',
-                groundAccent: '#777777', bush: '#1A1A1A', cloud: 'rgba(150, 150, 180, 0.5)'
+                groundAccent: '#777777', bush: '#111111', cloud: 'rgba(150, 150, 180, 0.3)'
             }
         ];
 
@@ -465,13 +465,12 @@
             return x - Math.floor(x);
         }
 
-        // Lyd og Musik (Akkord Seed Generator & Dynamisk)
+        // Lyd og Musik
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
         let musicInterval;
         let noteIndex = 0;
         
-        // Dynamiske arrays der overskrives ved hvert level
         let melodyNotes = [];
         let harmonyNotes = [];
         let bassNotes = [];
@@ -579,13 +578,13 @@
                 osc.start(now); osc.stop(now + 0.8);
             } else if (type === 'win') {
                 osc.type = 'square';
-                osc.frequency.setValueAtTime(523.25, now); // C
-                osc.frequency.setValueAtTime(659.25, now + 0.1); // E
-                osc.frequency.setValueAtTime(783.99, now + 0.2); // G
-                osc.frequency.setValueAtTime(1046.50, now + 0.3); // Høj C
-                osc.frequency.setValueAtTime(1046.50, now + 0.4); // Pause
-                osc.frequency.setValueAtTime(783.99, now + 0.45); // G
-                osc.frequency.setValueAtTime(1046.50, now + 0.6); // Høj C hold
+                osc.frequency.setValueAtTime(523.25, now); 
+                osc.frequency.setValueAtTime(659.25, now + 0.1); 
+                osc.frequency.setValueAtTime(783.99, now + 0.2); 
+                osc.frequency.setValueAtTime(1046.50, now + 0.3); 
+                osc.frequency.setValueAtTime(1046.50, now + 0.4); 
+                osc.frequency.setValueAtTime(783.99, now + 0.45); 
+                osc.frequency.setValueAtTime(1046.50, now + 0.6); 
                 
                 gain.gain.setValueAtTime(0.1, now);
                 gain.gain.setValueAtTime(0.1, now + 0.6);
@@ -596,7 +595,6 @@
                 const currentWave = waveTypes[(currentLevel - 1) % 4]; 
                 const pitchOffset = 1 + (((currentLevel - 1) % 5) * 0.05); 
 
-                // Tromme beat (kick drum) på hvert 4. trin
                 if (noteIndex % 4 === 0) {
                     const kickOsc = audioCtx.createOscillator();
                     const kickGain = audioCtx.createGain();
@@ -609,7 +607,6 @@
                     kickOsc.start(now); kickOsc.stop(now + 0.1);
                 }
 
-                // Hi-Hat på off-beats
                 if (noteIndex % 2 === 0 && noteIndex % 4 !== 0) {
                     const hatOsc = audioCtx.createOscillator();
                     const hatGain = audioCtx.createGain();
@@ -621,7 +618,6 @@
                     hatOsc.start(now); hatOsc.stop(now + 0.05);
                 }
 
-                // Melodi
                 const oscMelody = audioCtx.createOscillator();
                 const gainMelody = audioCtx.createGain();
                 oscMelody.connect(gainMelody); gainMelody.connect(audioCtx.destination);
@@ -631,7 +627,6 @@
                 gainMelody.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
                 oscMelody.start(now); oscMelody.stop(now + 0.15);
 
-                // Harmoni-spor
                 const oscHarmony = audioCtx.createOscillator();
                 const gainHarmony = audioCtx.createGain();
                 oscHarmony.connect(gainHarmony); gainHarmony.connect(audioCtx.destination);
@@ -641,7 +636,6 @@
                 gainHarmony.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
                 oscHarmony.start(now); oscHarmony.stop(now + 0.15);
 
-                // Bas 
                 const oscBass = audioCtx.createOscillator();
                 const gainBass = audioCtx.createGain();
                 oscBass.connect(gainBass); gainBass.connect(audioCtx.destination);
@@ -681,7 +675,7 @@
             freezeTimer: 0, 
             knockbackTimer: 0,
             hurtTimer: 0,
-            squash: 1.0 // Til visuel juice (strækker/presser spilleren)
+            squash: 1.0 
         };
 
         // Fysik
@@ -980,7 +974,7 @@
             updateHUD();
             popEffects.push({ type: 'text', text: '+5', x: x, y: y, vy: -2, life: 40, color: '#FFCE00' });
             screenShake = Math.max(screenShake, 8);
-            player.squash = 1.2; // Bounce back stretch
+            player.squash = 1.2; 
         }
 
         function takeDamage(reason) {
@@ -1019,13 +1013,11 @@
         }
 
         function update() {
-            // Screen Shake decay
             if (screenShake > 0) {
                 screenShake *= 0.9;
                 if (screenShake < 0.1) screenShake = 0;
             }
 
-            // Squash and Stretch lerp tilbage til 1
             player.squash += (1.0 - player.squash) * 0.15;
 
             if (player.hurtTimer > 0) player.hurtTimer--;
@@ -1063,13 +1055,13 @@
                         player.vy = player.jumpPower;
                         player.grounded = false;
                         player.jumps = 1;
-                        player.squash = 1.3; // Hop stretch
+                        player.squash = 1.3; 
                         playSound('jump');
                         createParticles(player.x + player.width/2, player.y + player.height, '#ccc');
                     } else if (player.jumps < player.maxJumps && player.debuffTimer <= 0) {
                         player.vy = player.jumpPower; 
                         player.jumps++;
-                        player.squash = 1.4; // Double hop stretch
+                        player.squash = 1.4; 
                         playSound('jump');
                         createParticles(player.x + player.width/2, player.y + player.height, '#FFF');
                     }
@@ -1100,7 +1092,6 @@
                 if (player.vx < -player.speed) player.vx = -player.speed;
             }
 
-            // Støv partikler når man løber stærkt
             if (player.grounded && Math.abs(player.vx) > 3 && player.knockbackTimer <= 0 && Math.random() < 0.25) {
                 createParticles(player.x + player.width/2, player.y + player.height, '#EEE'); 
             }
@@ -1117,9 +1108,8 @@
                     let minOverlap = Math.min(overlapTop, overlapBottom, overlapLeft, overlapRight);
 
                     if (minOverlap === overlapTop && player.vy > 0) {
-                        // Hård landing
                         if (player.vy > 6) {
-                            player.squash = 0.7; // Squash bredt ud
+                            player.squash = 0.7; 
                             screenShake = Math.min(screenShake + 4, 10);
                         }
 
@@ -1153,7 +1143,7 @@
                     player.grounded = false;
                     player.jumps = 1; 
                     s.activeTimer = 15; 
-                    player.squash = 1.6; // Ekstra høj stretch
+                    player.squash = 1.6; 
                     screenShake = Math.max(screenShake, 15);
                     playSound('spring');
                     createParticles(s.x + s.w/2, s.y, '#FF0000');
@@ -1243,7 +1233,6 @@
                 if (e.x < e.minX) { e.x = e.minX; e.vx *= -1; }
                 if (e.x > e.maxX) { e.x = e.maxX; e.vx *= -1; }
                 
-                // Alma bil udstødningsrøg
                 if (e.type === 'alma' && Math.random() < 0.15) {
                     createParticles(e.x + (e.vx > 0 ? 0 : e.w), e.y + e.h - 10, '#888');
                 }
@@ -1274,7 +1263,7 @@
                             player.knockbackTimer = 30; 
                             player.vx = e.vx > 0 ? 20 : -20; 
                             player.vy = -8; 
-                            screenShake = 35; // Kraftigt stød
+                            screenShake = 35; 
                             playSound('hit');
                             createParticles(player.x, player.y, '#FF0000');
                             takeDamage("Alma kørte dig ned!");
@@ -1335,7 +1324,6 @@
             }
 
             let targetCameraX = player.x - canvas.width / 3;
-            // Blødere camera-panorering fremad
             if (targetCameraX > cameraX) {
                 cameraX += (targetCameraX - cameraX) * 0.1; 
             }
@@ -1346,27 +1334,29 @@
         }
 
         function draw() {
-            // Find nuværende tema baseret på level
             const theme = themes[(currentLevel - 1) % themes.length];
 
-            // Himmel
             let skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
             skyGrad.addColorStop(0, theme.skyTop);
             skyGrad.addColorStop(1, theme.skyBot);
             ctx.fillStyle = skyGrad;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Stjerner hvis det er nat
+            // Stjerner som panorerer uendeligt!
             if (theme.isNight) {
                 ctx.fillStyle = '#FFF';
-                for(let i = 0; i < 40; i++) {
-                    let sx = (i * 123 + cameraX * 0.02) % canvas.width;
-                    let sy = (i * 321) % (canvas.height / 1.5);
+                let starSpeed = 0.02;
+                let starWidth = canvas.width + 500;
+                for(let i = 0; i < 80; i++) {
+                    let sx = ((i * 1234.5) - (cameraX * starSpeed)) % starWidth;
+                    if (sx < 0) sx += starWidth;
+                    let sy = (i * 321.1) % (canvas.height / 1.5);
+                    ctx.globalAlpha = 0.3 + Math.abs(Math.sin(Date.now()/500 + i)) * 0.7; 
                     ctx.fillRect(sx, sy, 2, 2);
                 }
+                ctx.globalAlpha = 1.0;
             }
 
-            // Sol / Måne
             if (theme.isNight) {
                 ctx.fillStyle = '#FFF';
                 ctx.beginPath(); ctx.arc(300 - cameraX*0.03, 150, 40, 0, Math.PI*2); ctx.fill();
@@ -1378,27 +1368,97 @@
                 ctx.beginPath(); ctx.arc(250 - cameraX*0.03, 120, 50, 0, Math.PI*2); ctx.fill();
             }
 
-            // Fjerne bjerge (Parallax Layer 3)
-            ctx.fillStyle = theme.mountainTop;
-            for(let i=0; i<30; i++) {
-                ctx.beginPath();
-                ctx.moveTo(i*400 - (cameraX * 0.1) % 400, canvas.height);
-                ctx.lineTo(i*400 + 200 - (cameraX * 0.1) % 400, canvas.height - 350 + Math.sin(i*2)*100);
-                ctx.lineTo(i*400 + 400 - (cameraX * 0.1) % 400, canvas.height);
-                ctx.fill();
+            // Uendelige bjerge/skyskrabere (Parallax Layer 3)
+            let themeIndex = (currentLevel - 1) % themes.length;
+            let l3Speed = 0.1;
+            let l3Width = themeIndex === 3 ? 200 : 500; 
+            let start3 = Math.floor((cameraX * l3Speed) / l3Width) - 1;
+            let end3 = start3 + Math.ceil(canvas.width / l3Width) + 2;
+
+            for (let i = start3; i <= end3; i++) {
+                let x = i * l3Width - (cameraX * l3Speed);
+                let hRand = Math.abs(Math.sin(i * 12.34)) * 150; 
+                
+                ctx.fillStyle = theme.mountainTop;
+                if (themeIndex === 0) { // Græs: Bløde, høje bakker
+                    ctx.beginPath();
+                    ctx.moveTo(x - 50, canvas.height);
+                    ctx.quadraticCurveTo(x + l3Width/2, canvas.height - 300 - hRand, x + l3Width + 50, canvas.height);
+                    ctx.fill();
+                } else if (themeIndex === 1) { // Ørken: Skarpe Pyramider
+                    ctx.beginPath();
+                    ctx.moveTo(x - 50, canvas.height);
+                    ctx.lineTo(x + l3Width/2, canvas.height - 250 - hRand);
+                    ctx.lineTo(x + l3Width + 50, canvas.height);
+                    ctx.fill();
+                    ctx.fillStyle = theme.mountainBot;
+                    ctx.beginPath();
+                    ctx.moveTo(x + l3Width/2, canvas.height - 250 - hRand);
+                    ctx.lineTo(x + l3Width + 50, canvas.height);
+                    ctx.lineTo(x + l3Width/2, canvas.height);
+                    ctx.fill();
+                } else if (themeIndex === 2) { // Vinter: Takkede isbjerge
+                    ctx.beginPath();
+                    ctx.moveTo(x - 20, canvas.height);
+                    ctx.lineTo(x + l3Width/2 - 20, canvas.height - 300 - hRand);
+                    ctx.lineTo(x + l3Width/2 + 20, canvas.height - 250 - hRand);
+                    ctx.lineTo(x + l3Width + 20, canvas.height);
+                    ctx.fill();
+                } else if (themeIndex === 3) { // Nat: Skyskrabere
+                    let bWidth = l3Width * 0.7;
+                    let bHeight = 250 + hRand;
+                    ctx.fillRect(x, canvas.height - bHeight, bWidth, bHeight);
+                    ctx.fillStyle = theme.mountainBot;
+                    ctx.fillRect(x + bWidth - 20, canvas.height - bHeight, 20, bHeight);
+                }
             }
 
-            // Parallax Bakker (Parallax Layer 2)
-            ctx.fillStyle = theme.hillBot; 
-            for(let i=0; i<20; i++) {
-                ctx.beginPath();
-                ctx.arc(i*400 - (cameraX * 0.3) % 400 + 200, canvas.height - 50, 180, Math.PI, 0);
-                ctx.fill();
-                ctx.fillStyle = theme.hillTop; 
-                ctx.beginPath();
-                ctx.arc(i*400 - (cameraX * 0.3) % 400 + 200, canvas.height - 50, 140, Math.PI, 0);
-                ctx.fill();
-                ctx.fillStyle = theme.hillBot; 
+            // Uendelige forgrundsbakker/bygninger (Parallax Layer 2)
+            let l2Speed = 0.3;
+            let l2Width = themeIndex === 3 ? 150 : 400; 
+            let start2 = Math.floor((cameraX * l2Speed) / l2Width) - 1;
+            let end2 = start2 + Math.ceil(canvas.width / l2Width) + 2;
+
+            for (let i = start2; i <= end2; i++) {
+                let x = i * l2Width - (cameraX * l2Speed);
+                let hRand = Math.abs(Math.cos(i * 45.67)) * 100;
+
+                if (themeIndex === 0 || themeIndex === 2) { 
+                    // Græs & Vinter: Bløde buer
+                    ctx.fillStyle = theme.hillBot;
+                    ctx.beginPath();
+                    ctx.arc(x + l2Width/2, canvas.height - 50, 180 + hRand/3, Math.PI, 0);
+                    ctx.fill();
+                    ctx.fillStyle = theme.hillTop;
+                    ctx.beginPath();
+                    ctx.arc(x + l2Width/2, canvas.height - 50, 140 + hRand/3, Math.PI, 0);
+                    ctx.fill();
+                } else if (themeIndex === 1) { 
+                    // Ørken: Klippe-mesas (Flade toppe)
+                    ctx.fillStyle = theme.hillBot;
+                    ctx.beginPath();
+                    ctx.moveTo(x, canvas.height);
+                    ctx.lineTo(x + 60, canvas.height - 120 - hRand/2);
+                    ctx.lineTo(x + l2Width - 60, canvas.height - 120 - hRand/2);
+                    ctx.lineTo(x + l2Width, canvas.height);
+                    ctx.fill();
+                    ctx.fillStyle = theme.hillTop;
+                    ctx.fillRect(x + 60, canvas.height - 120 - hRand/2, l2Width - 120, 20);
+                } else if (themeIndex === 3) { 
+                    // Nat: Bygninger med vinduer
+                    let bWidth = l2Width * 0.8;
+                    let bHeight = 150 + hRand;
+                    ctx.fillStyle = theme.hillBot;
+                    ctx.fillRect(x, canvas.height - bHeight, bWidth, bHeight);
+                    
+                    for (let wy = canvas.height - bHeight + 20; wy < canvas.height - 50; wy += 35) {
+                        for (let wx = x + 15; wx < x + bWidth - 15; wx += 25) {
+                            let isLit = Math.abs(Math.sin(i * wx * wy)) > 0.3; // Deterministisk tændt/slukket
+                            ctx.fillStyle = isLit ? 'rgba(255, 255, 150, 0.8)' : 'rgba(50, 50, 80, 0.5)';
+                            ctx.fillRect(wx, wy, 12, 18);
+                        }
+                    }
+                }
             }
 
             drawCloud(200 - cameraX * 0.2, 100, 1, theme.cloud);
@@ -1408,7 +1468,6 @@
             drawCloud(2800 - cameraX * 0.2, 90, 0.9, theme.cloud);
 
             ctx.save();
-            // Anvend kamera OG screen shake
             let sx = (Math.random() - 0.5) * screenShake;
             let sy = (Math.random() - 0.5) * screenShake;
             ctx.translate(-cameraX + sx, sy);
@@ -1425,7 +1484,6 @@
             for (let c of coins) {
                 if (!c.collected) {
                     let floatY = Math.sin(Date.now() / 200 + c.x) * 3;
-                    // Roterer i 3D
                     let coinWidth = Math.max(2, 10 * Math.cos(Date.now() / 150 + c.x)); 
                     
                     ctx.fillStyle = '#FFCE00'; 
@@ -1487,15 +1545,14 @@
                     ctx.fillStyle = theme.groundAccent;
                     ctx.fillRect(p.x, p.y, p.w, 5);
                     
-                    // Detaljer på overfladen tilpasset temaet!
                     ctx.fillStyle = theme.groundTop;
                     for(let gx = p.x + 10; gx < p.x + p.w - 10; gx += 30) {
                         ctx.beginPath();
-                        if (theme.isDesert) { // Ørken: Små sten på vejen
+                        if (theme.isDesert) {
                             ctx.arc(gx, p.y + 3, 4, 0, Math.PI, true);
-                        } else if (theme.isNight) { // Nat: Bump på asfalten
+                        } else if (theme.isNight) {
                             ctx.fillRect(gx, p.y - 2, 8, 4);
-                        } else { // Græs eller sne totter
+                        } else {
                             ctx.moveTo(gx, p.y + 5);
                             ctx.lineTo(gx + 5, p.y - 5);
                             ctx.lineTo(gx + 10, p.y + 5);
@@ -1504,14 +1561,12 @@
                     }
 
                 } else if (p.type === 'conveyor') {
-                    // Tegn Rullebånd
                     ctx.fillStyle = '#555'; 
                     ctx.fillRect(p.x, p.y, p.w, p.h);
                     ctx.strokeStyle = '#222';
                     ctx.lineWidth = 2;
                     ctx.strokeRect(p.x, p.y, p.w, p.h);
 
-                    // Bevægende streger
                     ctx.fillStyle = '#888';
                     let offset = (Date.now() / 15 * Math.abs(p.conveyorSpeed)) % 20;
                     if (p.conveyorSpeed < 0) offset = 20 - offset;
@@ -1522,36 +1577,31 @@
                         }
                     }
                     
-                    // Roterende tandhjul i enderne!
                     let gearRot = (Date.now() / 15 * p.conveyorSpeed) % (Math.PI * 2);
                     ctx.fillStyle = '#222';
-                    // Venstre hjul
                     ctx.beginPath(); ctx.arc(p.x + 10, p.y + p.h/2, p.h/2 - 2, 0, Math.PI*2); ctx.fill();
                     ctx.strokeStyle = '#888'; ctx.lineWidth = 2;
                     ctx.beginPath(); ctx.moveTo(p.x + 10, p.y + p.h/2); ctx.lineTo(p.x + 10 + Math.cos(gearRot)*8, p.y + p.h/2 + Math.sin(gearRot)*8); ctx.stroke();
-                    // Højre hjul
+                    
                     ctx.beginPath(); ctx.arc(p.x + p.w - 10, p.y + p.h/2, p.h/2 - 2, 0, Math.PI*2); ctx.fill();
                     ctx.beginPath(); ctx.moveTo(p.x + p.w - 10, p.y + p.h/2); ctx.lineTo(p.x + p.w - 10 + Math.cos(gearRot)*8, p.y + p.h/2 + Math.sin(gearRot)*8); ctx.stroke();
 
-                    // Rullebånd kant
                     ctx.fillStyle = '#333';
                     ctx.fillRect(p.x, p.y, p.w, 4);
                     ctx.fillRect(p.x, p.y + p.h - 4, p.w, 4);
 
-                } else { // Almindelige blokke
+                } else {
                     ctx.fillStyle = '#E87000';
                     ctx.fillRect(p.x, p.y, p.w, p.h);
                     ctx.strokeStyle = '#8A3308';
                     ctx.lineWidth = 2;
                     ctx.strokeRect(p.x, p.y, p.w, p.h);
                     
-                    // Lækker 3D highlight indeni blokken
                     ctx.fillStyle = 'rgba(255,255,255,0.2)';
                     ctx.fillRect(p.x + 2, p.y + 2, p.w - 4, 4);
                     ctx.fillStyle = 'rgba(0,0,0,0.2)';
                     ctx.fillRect(p.x + 2, p.y + p.h - 6, p.w - 4, 4);
                     
-                    // Bolte i hjørnerne
                     ctx.fillStyle = '#552200';
                     ctx.fillRect(p.x + 4, p.y + 4, 3, 3);
                     ctx.fillRect(p.x + p.w - 7, p.y + 4, 3, 3);
@@ -1573,7 +1623,6 @@
                 ctx.fillRect(s.x + 5, s.y + squeeze, s.w - 10, 10 - squeeze);
             }
 
-            // Flagstang
             ctx.fillStyle = '#ddd';
             ctx.fillRect(goalX, canvas.height - 300, 10, 250);
             ctx.fillStyle = '#FFCE00';
@@ -1596,7 +1645,6 @@
                 let bounce = Math.sin(Date.now() / 150 + ex) * 2; 
 
                 if (e.type === 'alma') {
-                    // Tegn Almas røde bil
                     ctx.fillStyle = '#FF2222'; 
                     ctx.fillRect(ex, ey + 20 + bounce, e.w, 30); 
                     ctx.fillRect(ex + 10, ey + bounce, e.w - 20, 20); 
@@ -1613,7 +1661,6 @@
                     ctx.arc(ex + e.w - 10, ey + 50 + bounce, 8, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Fartstreger bag bilen!
                     ctx.fillStyle = '#DDD';
                     if (e.vx > 0) {
                         ctx.fillRect(ex - 15, ey + 35 + bounce, 10, 2);
@@ -1694,7 +1741,6 @@
 
             ctx.restore();
 
-            // Mørk vignette kant for et lækkert arkade-look
             let vigGrad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, canvas.height/2, canvas.width/2, canvas.height/2, canvas.width);
             vigGrad.addColorStop(0, 'rgba(0,0,0,0)');
             vigGrad.addColorStop(1, 'rgba(0,0,0,0.6)');
@@ -1724,11 +1770,10 @@
             let starShirt = player.shirtColor;
             let starHair = player.hairColor;
 
-            // Anvend SQUASH AND STRETCH visuelt
             ctx.save();
-            ctx.translate(px + player.width/2, py + player.height); // Flyt anker til bund-center
-            ctx.scale(1 / player.squash, player.squash); // Skaler ud fra bund-center
-            ctx.translate(-(px + player.width/2), -(py + player.height)); // Flyt tilbage
+            ctx.translate(px + player.width/2, py + player.height); 
+            ctx.scale(1 / player.squash, player.squash); 
+            ctx.translate(-(px + player.width/2), -(py + player.height)); 
 
             if (isFrozen) ctx.fillStyle = '#00FFFF'; 
             else if (isStressed) ctx.fillStyle = '#555';
@@ -1774,7 +1819,7 @@
                 ctx.strokeRect(px - 5, py - 10, player.width + 10, player.height + 20);
             }
 
-            ctx.restore(); // Reset squash/stretch scaling
+            ctx.restore(); 
             ctx.globalAlpha = 1.0;
         }
 
@@ -1819,8 +1864,6 @@
                 ctx.globalAlpha = 1.0; 
             }
         }
-
-        // --- EVENTS OG CONTROLS ---
 
         window.addEventListener('keydown', (e) => {
             if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
