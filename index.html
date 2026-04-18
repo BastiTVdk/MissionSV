@@ -2,7 +2,7 @@
 <html lang="da">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Super Simi & Vega</title>
     <!-- Importerer en flot, blød spil-font -->
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
@@ -10,8 +10,8 @@
         body, html {
             margin: 0;
             padding: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100dvh; /* 100dvh sikrer at vi holder os indenfor den synlige skærm på mobiler */
             background-color: #000; 
             overflow: hidden; 
             font-family: 'Varela Round', sans-serif;
@@ -255,25 +255,26 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
-        /* Standard Touch layout (Landscape) */
-        #btnLeft { left: 20px; bottom: 15px; }
-        #btnRight { left: 100px; bottom: 15px; }
-        #btnShoot { right: 100px; bottom: 15px; width: 70px; height: 70px; background: linear-gradient(135deg, rgba(100,180,255,0.6), rgba(0,100,255,0.3)); }
-        #btnJump { right: 20px; bottom: 15px; width: 70px; height: 70px; background: linear-gradient(135deg, rgba(255,100,100,0.6), rgba(200,0,0,0.3)); }
+        /* Standard Touch layout (Landscape) - Tager højde for indhak i skærmens sider */
+        #btnLeft { left: calc(20px + env(safe-area-inset-left, 0px)); bottom: calc(15px + env(safe-area-inset-bottom, 0px)); }
+        #btnRight { left: calc(100px + env(safe-area-inset-left, 0px)); bottom: calc(15px + env(safe-area-inset-bottom, 0px)); }
+        #btnShoot { right: calc(100px + env(safe-area-inset-right, 0px)); bottom: calc(15px + env(safe-area-inset-bottom, 0px)); width: 70px; height: 70px; background: linear-gradient(135deg, rgba(100,180,255,0.6), rgba(0,100,255,0.3)); }
+        #btnJump { right: calc(20px + env(safe-area-inset-right, 0px)); bottom: calc(15px + env(safe-area-inset-bottom, 0px)); width: 70px; height: 70px; background: linear-gradient(135deg, rgba(255,100,100,0.6), rgba(200,0,0,0.3)); }
 
         /* Lodret (Portrait) layout - dedikeret område i bunden */
         @media (orientation: portrait) {
             #touchControls {
                 bottom: 0;
-                height: 120px;
+                height: calc(140px + env(safe-area-inset-bottom, 0px)); /* Ekstra højde lagt til for søgefelt / home-bar */
                 background: linear-gradient(to bottom, rgba(20,20,40,1), rgba(0,0,0,1));
                 border-top: 2px solid #FFCE00;
-                pointer-events: auto; /* Forhindrer utilsigtet klik baggrunden */
+                pointer-events: auto; 
             }
-            #btnLeft { left: 5%; bottom: 25px; }
-            #btnRight { left: 28%; bottom: 25px; }
-            #btnShoot { right: 28%; bottom: 25px; }
-            #btnJump { right: 5%; bottom: 25px; }
+            /* Løftet op forbi telefonens egen bund-menu */
+            #btnLeft { left: 5%; bottom: calc(40px + env(safe-area-inset-bottom, 0px)); }
+            #btnRight { left: 28%; bottom: calc(40px + env(safe-area-inset-bottom, 0px)); }
+            #btnShoot { right: 28%; bottom: calc(40px + env(safe-area-inset-bottom, 0px)); }
+            #btnJump { right: 5%; bottom: calc(40px + env(safe-area-inset-bottom, 0px)); }
         }
 
         .hidden { display: none !important; }
@@ -657,15 +658,18 @@
                    r1.y + (r1.height || r1.h) > r2.y;
         }
 
-        // Justeret resize-funktion der gør plads til controller i bunden!
+        // Justeret resize-funktion der bruger visuel viewport og gør plads til controller i bunden!
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             
+            // Brug visualViewport for at få præcis højde på moderne mobiler
+            let vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+            
             // Hvis det er en telefon/tablet på højkant (portrait mode), gør vi plads til controlleren
-            if (window.innerHeight > window.innerWidth && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
-                canvas.height = window.innerHeight - 120; // Trækker de 120px fra højden
+            if (vh > window.innerWidth && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
+                canvas.height = vh - 140; // Trækker nu 140px fra for ekstra luft under knapperne
             } else {
-                canvas.height = window.innerHeight;
+                canvas.height = vh;
             }
             
             if (gameState === 'playing') draw();
