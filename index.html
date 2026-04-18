@@ -218,8 +218,12 @@
             z-index: 20;
         }
 
-        @media (max-width: 768px) {
-            .show-touch { display: flex !important; }
+        /* --- TOUCH CONTROLS OG MOBIL TILPASNING --- */
+
+        /* Sørger for at touch-knapper altid vises på touch-enheder uanset skærmbredde */
+        .show-touch { display: block !important; }
+
+        @media (max-width: 900px) {
             #hudLeft { top: 5px; left: 5px; padding: 10px; font-size: 16px; }
             #hudRight { top: 5px; right: 5px; padding: 10px; max-width: 180px; font-size: 11px;}
             h1 { font-size: 2.2rem; }
@@ -251,11 +255,26 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
-        /* Standard Touch layout */
-        #btnLeft { left: 10px; bottom: 15px; }
-        #btnRight { left: 85px; bottom: 15px; }
-        #btnShoot { right: 90px; bottom: 15px; width: 70px; height: 70px; background: linear-gradient(135deg, rgba(100,180,255,0.6), rgba(0,100,255,0.3)); }
-        #btnJump { right: 10px; bottom: 15px; width: 70px; height: 70px; background: linear-gradient(135deg, rgba(255,100,100,0.6), rgba(200,0,0,0.3)); }
+        /* Standard Touch layout (Landscape) */
+        #btnLeft { left: 20px; bottom: 15px; }
+        #btnRight { left: 100px; bottom: 15px; }
+        #btnShoot { right: 100px; bottom: 15px; width: 70px; height: 70px; background: linear-gradient(135deg, rgba(100,180,255,0.6), rgba(0,100,255,0.3)); }
+        #btnJump { right: 20px; bottom: 15px; width: 70px; height: 70px; background: linear-gradient(135deg, rgba(255,100,100,0.6), rgba(200,0,0,0.3)); }
+
+        /* Lodret (Portrait) layout - dedikeret område i bunden */
+        @media (orientation: portrait) {
+            #touchControls {
+                bottom: 0;
+                height: 120px;
+                background: linear-gradient(to bottom, rgba(20,20,40,1), rgba(0,0,0,1));
+                border-top: 2px solid #FFCE00;
+                pointer-events: auto; /* Forhindrer utilsigtet klik baggrunden */
+            }
+            #btnLeft { left: 5%; bottom: 25px; }
+            #btnRight { left: 28%; bottom: 25px; }
+            #btnShoot { right: 28%; bottom: 25px; }
+            #btnJump { right: 5%; bottom: 25px; }
+        }
 
         .hidden { display: none !important; }
     </style>
@@ -608,51 +627,6 @@
             }
         }
 
-        // HUD Ikontenger-funktion
-        function drawHUDIcons() {
-            // William
-            let wCtx = document.getElementById('icon-william').getContext('2d');
-            wCtx.fillStyle = '#FFD1B3'; wCtx.fillRect(2, 6, 20, 16);
-            wCtx.fillStyle = '#E8C820'; wCtx.fillRect(2, 2, 20, 8);
-            wCtx.fillStyle = '#FF0000'; wCtx.fillRect(14, 10, 4, 4);
-            
-            // Asger
-            let aCtx = document.getElementById('icon-asger').getContext('2d');
-            aCtx.fillStyle = '#FFD1B3'; aCtx.fillRect(2, 6, 20, 16);
-            aCtx.fillStyle = '#5C4033'; aCtx.fillRect(2, 2, 20, 8);
-            aCtx.fillStyle = '#FF0000'; aCtx.fillRect(14, 10, 4, 4);
-
-            // Alma (Car)
-            let alCtx = document.getElementById('icon-alma').getContext('2d');
-            alCtx.fillStyle = '#FF2222'; alCtx.fillRect(0, 10, 24, 14);
-            alCtx.fillStyle = '#ADD8E6'; alCtx.fillRect(4, 4, 16, 8);
-            alCtx.fillStyle = '#111'; alCtx.beginPath(); alCtx.arc(6, 22, 4, 0, Math.PI*2); alCtx.arc(18, 22, 4, 0, Math.PI*2); alCtx.fill();
-
-            // SAG
-            let sagCtx = document.getElementById('icon-sag').getContext('2d');
-            sagCtx.fillStyle = '#FFF'; sagCtx.fillRect(4, 2, 16, 20);
-            sagCtx.fillStyle = '#FF0000'; sagCtx.font = 'bold 8px Courier'; sagCtx.fillText('SAG', 5, 15);
-
-            // Bomb (Karla)
-            let bCtx = document.getElementById('icon-bomb').getContext('2d');
-            bCtx.fillStyle = '#111'; bCtx.beginPath(); bCtx.arc(12, 14, 8, 0, Math.PI*2); bCtx.fill();
-            bCtx.strokeStyle = '#888'; bCtx.beginPath(); bCtx.moveTo(12, 6); bCtx.lineTo(16, 2); bCtx.stroke();
-            bCtx.fillStyle = '#FF4444'; bCtx.font = 'bold 10px "Varela Round"'; bCtx.fillText('K', 8, 18);
-
-            // Shuriken (Astrid)
-            let shCtx = document.getElementById('icon-shuriken').getContext('2d');
-            shCtx.translate(12, 12);
-            shCtx.fillStyle = '#00FFFF'; shCtx.beginPath();
-            shCtx.moveTo(0, -10); shCtx.lineTo(2, -2); shCtx.lineTo(10, 0); shCtx.lineTo(2, 2);
-            shCtx.lineTo(0, 10); shCtx.lineTo(-2, 2); shCtx.lineTo(-10, 0); shCtx.lineTo(-2, -2);
-            shCtx.closePath(); shCtx.fill();
-
-            // Conveyor
-            let cCtx = document.getElementById('icon-conveyor').getContext('2d');
-            cCtx.fillStyle = '#555'; cCtx.fillRect(2, 8, 20, 8);
-            cCtx.fillStyle = '#222'; cCtx.beginPath(); cCtx.arc(4, 12, 4, 0, Math.PI*2); cCtx.arc(20, 12, 4, 0, Math.PI*2); cCtx.fill();
-        }
-
         // Kamera & Input
         let cameraX = 0;
         const keys = { left: false, right: false, jump: false, shoot: false };
@@ -683,9 +657,17 @@
                    r1.y + (r1.height || r1.h) > r2.y;
         }
 
+        // Justeret resize-funktion der gør plads til controller i bunden!
         function resizeCanvas() {
             canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            
+            // Hvis det er en telefon/tablet på højkant (portrait mode), gør vi plads til controlleren
+            if (window.innerHeight > window.innerWidth && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
+                canvas.height = window.innerHeight - 120; // Trækker de 120px fra højden
+            } else {
+                canvas.height = window.innerHeight;
+            }
+            
             if (gameState === 'playing') draw();
         }
         window.addEventListener('resize', resizeCanvas);
@@ -842,7 +824,9 @@
             updateHUD();
             
             touchControls.classList.remove('show-touch');
-            if ('ontouchstart' in window) {
+            // Tjekker specifikt om enheden primært styres med en finger (telefon/tablet)
+            // Dette forhindrer knapperne i at dukke op på bærbare med touchskærme
+            if (window.matchMedia("(pointer: coarse)").matches) {
                 touchControls.classList.add('show-touch');
             }
 
