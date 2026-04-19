@@ -726,8 +726,14 @@
                 let diffLevel = currentLevel;
 
                 let gap = 40 + randomSeed() * (40 + diffLevel * 15);
-                if (gap > 220 && !isEndless) gap = 220;
-                if (isEndless && gap > 260) gap = 260; // Giver plads til lidt vildere spring i uendelig mode
+                
+                // Gør starten af endless nemmere ved at begrænse max gap tidligt
+                let maxGap = 220;
+                if (isEndless) {
+                    maxGap = Math.min(260, 120 + (diffLevel * 20)); // Starter ved 140, stiger gradvist op til 260
+                }
+                if (gap > maxGap) gap = maxGap;
+                
                 curX += gap;
 
                 let pWidth = 150 + randomSeed() * (300 - diffLevel * 10);
@@ -765,7 +771,10 @@
                     shurikenPickups.push({ x: curX + pWidth/3, y: pY - 20, w: 16, h: 16, collected: false });
                 }
 
-                if (diffLevel >= 1 && pWidth > 120 && randomSeed() < (0.2 + diffLevel * 0.08)) {
+                let enemyChance = 0.2 + diffLevel * 0.08;
+                if (isEndless && curX < 2500) enemyChance = 0.05; // Næsten ingen fjender helt i starten
+
+                if (diffLevel >= 1 && pWidth > 120 && randomSeed() < enemyChance) {
                     let enemyRand = randomSeed();
                     let enemyType = enemyRand > 0.8 ? 'alma' : (enemyRand > 0.4 ? 'asger' : 'william'); 
                     
@@ -894,7 +903,14 @@
         };
 
         window.restartLevel = function() {
-            score = levelStartScore; levelKills = 0;
+            if (isEndless) {
+                currentLevel = 1; // Sørger for altid at nulstille til Level 1 når vi dør i Endless mode
+                levelStartScore = 0;
+                score = 0;
+            } else {
+                score = levelStartScore; 
+            }
+            levelKills = 0;
             
             player.x = 100;
             player.y = canvas.height - 200;
