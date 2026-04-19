@@ -21,8 +21,6 @@
 
         #gameCanvas {
             display: block;
-            /* Fjernet width/height 100% her, da vi nu styrer det knivskarpt med JavaScript 
-               for at undgå at lærredet strækker sig ned under knapperne */
         }
 
         /* Brugergrænseflade (UI) for menuer */
@@ -300,7 +298,8 @@
         <div class="hud-item hud-lives" id="livesDisplay"></div>
         <div class="hud-item"><span style="color:#FFCE00">🪙</span> Samlet: <span id="scoreDisplay">0</span></div>
         <div class="hud-item" id="ammoDisplay" style="display:none;"><span style="font-size:18px;">🥷</span> Ammo: <span id="shurikenCount">0</span></div>
-        <div class="hud-item hud-stats">⭐ Niv: <span id="levelDisplay">1</span></div>
+        <div class="hud-item hud-stats" id="levelHUD">⭐ Niv: <span id="levelDisplay">1</span></div>
+        <div class="hud-item hud-stats" id="distHUD" style="display:none; color:#00FFFF;">📏 Meter: <span id="distDisplay">0</span></div>
         <div class="hud-item hud-kills">⚔️ Kills: <span id="killDisplay">0</span></div>
     </div>
 
@@ -358,7 +357,10 @@
             <div class="kill-board" id="startKillBoard">
                 <strong style="color:#FFCE00;">🏆 Rangliste (Kills)</strong><br>
                 Simi: 0 &nbsp;|&nbsp; Vega: 0<br>
-                <em style="color:#AAA; font-size: 0.9em;">Ingen fører endnu!</em>
+                <em style="color:#AAA; font-size: 0.9em;">Ingen fører endnu!</em><br>
+                <div style="margin-top:8px; border-top:1px solid rgba(255,255,255,0.2); padding-top:8px;">
+                    <strong style="color:#00FFFF;">♾️ Uendelig Rekord:</strong> 0 m
+                </div>
             </div>
             <p style="font-size: 0.85rem; color: #BBB;">
                 <strong>A/D / Piletaster:</strong> Løb frem og tilbage<br>
@@ -442,6 +444,10 @@
         let levelStartScore = 0;
         let currentLevel = 1;
         let levelKills = 0; 
+        
+        let isEndless = false;
+        let endlessScore = 0;
+        let farthestX = 0;
         
         let killStats = { simi: 0, vega: 0 };
         let unlockedLevels = { simi: 1, vega: 1 }; 
@@ -712,25 +718,19 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        function buildLevel() {
-            platforms = []; coins = []; bushes = []; enemies = [];
-            projectiles = []; playerProjectiles = []; assignments = [];
-            springboards = []; popEffects = []; bombs = []; shurikenPickups = [];
-            
+        function generateChunk(startX, endX) {
             let groundY = canvas.height - 50;
-            levelSeed = currentLevel * 12345;
+            let curX = startX;
 
-            platforms.push({ x: -100, y: groundY, w: 800, h: 100, type: 'ground', conveyorSpeed: 0 });
-            goalX = 2000 + (currentLevel * 1000); 
+            while (curX < endX) {
+                let diffLevel = currentLevel;
 
-            let curX = 700;
-            
-            while (curX < goalX) {
-                let gap = 40 + randomSeed() * (40 + currentLevel * 15);
-                if (gap > 220) gap = 220;
+                let gap = 40 + randomSeed() * (40 + diffLevel * 15);
+                if (gap > 220 && !isEndless) gap = 220;
+                if (isEndless && gap > 260) gap = 260; // Giver plads til lidt vildere spring i uendelig mode
                 curX += gap;
 
-                let pWidth = 150 + randomSeed() * (300 - currentLevel * 10);
+                let pWidth = 150 + randomSeed() * (300 - diffLevel * 10);
                 if (pWidth < 80) pWidth = 80;
 
                 let pY = groundY;
@@ -743,6 +743,7 @@
                     if (randomSeed() > 0.5) {
                         type = 'conveyor';
                         conveyorSpeed = randomSeed() > 0.5 ? 2.5 : -2.5; 
+                        if (isEndless && diffLevel > 3 && randomSeed() > 0.5) conveyorSpeed *= 1.3;
                     }
                 }
 
@@ -756,37 +757,58 @@
                     for (let c=0; c<numCoins; c++) coins.push({ x: curX + (pWidth/numCoins)*c + 20, y: pY - 40, w: 20, h: 20, collected: false });
                 }
 
-                // Karla Bomber (Level 4+)
-                if (currentLevel >= 4 && type === 'ground' && pWidth > 150 && randomSeed() < 0.3) {
+                if (diffLevel >= 4 && type === 'ground' && pWidth > 150 && randomSeed() < 0.3) {
                     bombs.push({ x: curX + pWidth/2, y: pY - 15, w: 20, h: 15, exploded: false });
                 }
 
-                // Astrid Stjerner (Level 6+)
-                if (currentLevel >= 6 && type === 'ground' && randomSeed() < 0.25) {
+                if (diffLevel >= 6 && type === 'ground' && randomSeed() < 0.25) {
                     shurikenPickups.push({ x: curX + pWidth/3, y: pY - 20, w: 16, h: 16, collected: false });
                 }
 
-                if (currentLevel >= 1 && pWidth > 120 && randomSeed() < (0.2 + currentLevel * 0.08)) {
+                if (diffLevel >= 1 && pWidth > 120 && randomSeed() < (0.2 + diffLevel * 0.08)) {
                     let enemyRand = randomSeed();
                     let enemyType = enemyRand > 0.8 ? 'alma' : (enemyRand > 0.4 ? 'asger' : 'william'); 
+                    
+                    let almaSpeed = 2.5 + (isEndless ? (diffLevel * 0.1) : 0);
+
                     enemies.push({
                         x: curX + pWidth/2, y: enemyType === 'alma' ? pY - 60 : pY - 50,
                         w: enemyType === 'alma' ? 50 : 30, h: enemyType === 'alma' ? 60 : 50,
-                        vx: (enemyType === 'alma' ? 2.5 : 1) * (randomSeed() > 0.5 ? 1 : -1), 
+                        vx: (enemyType === 'alma' ? almaSpeed : 1) * (randomSeed() > 0.5 ? 1 : -1), 
                         minX: curX, maxX: curX + pWidth - (enemyType === 'alma' ? 50 : 30),
                         cooldown: randomSeed() * 60, dead: false, type: enemyType,
-                        hp: enemyType === 'alma' ? 3 : 1, flashTimer: 0 // Alma har HP
+                        hp: enemyType === 'alma' ? 3 : 1, flashTimer: 0 
                     });
                 }
                 
-                if (currentLevel >= 3 && randomSeed() < 0.3) {
+                if (diffLevel >= 3 && randomSeed() < 0.3) {
                     assignments.push({ x: curX + pWidth/2, y: pY - 80 - randomSeed() * 50, w: 24, h: 32, offset: randomSeed() * Math.PI * 2, startY: pY - 80 - randomSeed() * 50 });
                 }
                 curX += pWidth;
             }
+            farthestX = curX;
+        }
 
-            platforms.push({ x: curX, y: groundY, w: 800, h: 100, type: 'ground', conveyorSpeed: 0 });
-            goalX = curX + 300;
+        function buildLevel() {
+            platforms = []; coins = []; bushes = []; enemies = [];
+            projectiles = []; playerProjectiles = []; assignments = [];
+            springboards = []; popEffects = []; bombs = []; shurikenPickups = [];
+            
+            let groundY = canvas.height - 50;
+
+            platforms.push({ x: -100, y: groundY, w: 800, h: 100, type: 'ground', conveyorSpeed: 0 });
+
+            if (isEndless) {
+                levelSeed = Math.random() * 10000;
+                goalX = Infinity;
+                generateChunk(700, 4000);
+            } else {
+                levelSeed = currentLevel * 12345;
+                goalX = 2000 + (currentLevel * 1000); 
+                generateChunk(700, goalX);
+                platforms.push({ x: farthestX, y: groundY, w: 800, h: 100, type: 'ground', conveyorSpeed: 0 });
+                goalX = farthestX + 300;
+            }
         }
 
         function updateRankBoard(boardElement) {
@@ -795,10 +817,15 @@
             else if (killStats.vega > killStats.simi) leader = "Vega fører!";
             else if (killStats.simi > 0 || killStats.vega > 0) leader = "Det står lige!";
 
+            let high = localStorage.getItem('sag_endlessHighscore') || 0;
+
             boardElement.innerHTML = `
                 <strong style="color:#FFCE00;">🏆 Rangliste (Kills)</strong><br>
                 Simi: ${killStats.simi} &nbsp;|&nbsp; Vega: ${killStats.vega}<br>
-                <em style="color:#AAA; font-size: 0.9em;">${leader}</em>
+                <em style="color:#AAA; font-size: 0.9em;">${leader}</em><br>
+                <div style="margin-top:8px; border-top:1px solid rgba(255,255,255,0.2); padding-top:8px;">
+                    <strong style="color:#00FFFF;">♾️ Uendelig Rekord:</strong> ${high} m
+                </div>
             `;
         }
 
@@ -828,7 +855,13 @@
             gameOverScreen.classList.add('hidden'); winScreen.classList.add('hidden');
             hudLeft.style.display = 'none'; hudRight.style.display = 'none';
             
-            levelButtonsContainer.innerHTML = '';
+            levelButtonsContainer.innerHTML = `
+                <div style="width: 100%; margin-bottom: 15px; display:flex; justify-content:center;">
+                    <button class="btn" style="background: linear-gradient(to bottom, #8A2BE2, #4B0082); border-color:#D8BFD8; width: 90%; box-shadow: 0 8px 0 #2A004D;" onclick="startEndless()">🔥 Uendelig Spil 🔥</button>
+                </div>
+                <div style="width: 100%; font-size: 0.9rem; color: #aaa; margin-bottom: 10px; text-align:center;">-- Eller vælg bane --</div>
+            `;
+            
             let maxUnlocked = unlockedLevels[currentCharacter];
             
             for (let i = 1; i <= maxUnlocked; i++) {
@@ -841,7 +874,17 @@
             levelSelectScreen.classList.remove('hidden'); gameState = 'menu';
         }
 
+        window.startEndless = function() {
+            isEndless = true;
+            currentLevel = 1;
+            score = 0;
+            levelStartScore = 0;
+            levelSelectScreen.classList.add('hidden');
+            restartLevel();
+        }
+
         window.startGame = function(level) {
+            isEndless = false;
             currentLevel = level; score = 0; levelStartScore = 0;
             levelSelectScreen.classList.add('hidden'); restartLevel(); 
         };
@@ -860,19 +903,20 @@
             player.shootCooldown = 0; player.squash = 1.0; player.trail = [];
             player.lives = 3; player.isDead = false; player.shurikens = 0;
             
+            endlessScore = 0;
+            
             updateHUD();
             
             touchControls.classList.remove('show-touch');
             // Tjekker specifikt om enheden primært styres med en finger (telefon/tablet)
-            // Dette forhindrer knapperne i at dukke op på bærbare med touchskærme
             if (window.matchMedia("(pointer: coarse)").matches) {
                 touchControls.classList.add('show-touch');
             }
 
-            // Opdater Leksikon
-            document.getElementById('advancedLegend').style.display = (currentLevel >= 4) ? 'block' : 'none';
-            document.getElementById('legendBomb').style.display = (currentLevel >= 4) ? 'flex' : 'none';
-            document.getElementById('legendShuriken').style.display = (currentLevel >= 6) ? 'flex' : 'none';
+            // Opdater Leksikon (vises nu tidligt hvis man er i uendelig mode)
+            document.getElementById('advancedLegend').style.display = (currentLevel >= 4 || isEndless) ? 'block' : 'none';
+            document.getElementById('legendBomb').style.display = (currentLevel >= 4 || isEndless) ? 'flex' : 'none';
+            document.getElementById('legendShuriken').style.display = (currentLevel >= 6 || isEndless) ? 'flex' : 'none';
 
             winScreen.classList.add('hidden'); gameOverScreen.classList.add('hidden');
             hudLeft.style.display = 'flex'; hudRight.style.display = 'flex';
@@ -904,7 +948,9 @@
             }
 
             if (musicInterval) clearInterval(musicInterval);
-            noteIndex = 0; let tempo = Math.max(160, 250 - (currentLevel * 5)); 
+            let tempo = Math.max(160, 250 - (currentLevel * 5)); 
+            if (isEndless) tempo = 220; // Fast tempo in endless start
+            noteIndex = 0; 
             musicInterval = setInterval(() => playSound('bg'), tempo);
             
             if (animationId) cancelAnimationFrame(animationId);
@@ -921,12 +967,20 @@
 
         function updateHUD() {
             scoreDisplay.innerText = score;
-            levelDisplay.innerText = currentLevel;
             killDisplay.innerText = killStats[currentCharacter];
-            
             livesDisplay.innerHTML = "❤️".repeat(player.lives);
 
-            if(currentLevel >= 6) {
+            if (isEndless) {
+                document.getElementById('distHUD').style.display = 'flex';
+                document.getElementById('levelHUD').style.display = 'none';
+                document.getElementById('distDisplay').innerText = endlessScore;
+            } else {
+                document.getElementById('distHUD').style.display = 'none';
+                document.getElementById('levelHUD').style.display = 'flex';
+                levelDisplay.innerText = currentLevel;
+            }
+
+            if(currentLevel >= 6 || isEndless) {
                 document.getElementById('ammoDisplay').style.display = 'flex';
                 document.getElementById('shurikenCount').innerText = player.shurikens;
             } else {
@@ -962,7 +1016,20 @@
         function killPlayer(reason) {
             if (gameState !== 'gameover') playSound('die');
             gameState = 'gameover'; deathReason.innerText = reason;
-            finalScoreLoss.innerText = `Nåede Niveau ${currentLevel} med ${score} mønter.`;
+            
+            if (isEndless) {
+                let savedHigh = localStorage.getItem('sag_endlessHighscore') || 0;
+                if (endlessScore > savedHigh) {
+                    localStorage.setItem('sag_endlessHighscore', endlessScore);
+                    savedHigh = endlessScore;
+                    finalScoreLoss.innerText = `Ny Rekord! Nåede ${endlessScore} meter med ${score} mønter.`;
+                } else {
+                    finalScoreLoss.innerText = `Nåede ${endlessScore} meter. (Rekord: ${savedHigh}m)`;
+                }
+            } else {
+                finalScoreLoss.innerText = `Nåede Niveau ${currentLevel} med ${score} mønter.`;
+            }
+            
             updateRankBoard(document.getElementById('lossKillBoard'));
             gameOverScreen.classList.remove('hidden'); hudLeft.style.display = 'none'; hudRight.style.display = 'none';
         }
@@ -1100,7 +1167,6 @@
                     }
                 }
 
-                // Karla Bomber Logik (KONFETTI)
                 for (let j = 0; j < bombs.length; j++) {
                     let b = bombs[j];
                     if (!b.exploded && checkCol(player, b)) {
@@ -1111,7 +1177,6 @@
                     }
                 }
 
-                // Astrid Shuriken Pickup Logik
                 for (let j = 0; j < shurikenPickups.length; j++) {
                     let sh = shurikenPickups[j];
                     if (!sh.collected && checkCol(player, sh)) {
@@ -1143,6 +1208,43 @@
                         setTimeout(() => killPlayer("Du faldt i et hul!"), 500);
                     }
                 }
+                
+                // Uendelig Mode logik
+                if (isEndless && !player.isDead) {
+                    let currentDist = Math.max(0, Math.floor(player.x / 50));
+                    if (currentDist > endlessScore) {
+                        endlessScore = currentDist;
+                        if (endlessScore % 10 === 0) updateHUD(); // Opdater hud hver 10. meter for at spare ressourcer
+                    }
+                    
+                    // Øg sværhedsgrad og skift tema for hver 100 meter (5000 pixels)
+                    let calcLevel = Math.floor(endlessScore / 100) + 1;
+                    if (calcLevel > currentLevel) {
+                        currentLevel = calcLevel;
+                        popEffects.push({ type: 'text', text: 'SVÆRERE!', x: player.x, y: player.y - 50, vy: -2, life: 60, color: '#FF4444' });
+                        updateHUD();
+                    }
+                    
+                    // Byg næste chunk, når man nærmer sig enden af det genererede
+                    if (player.x > farthestX - 2000) {
+                        generateChunk(farthestX, farthestX + 3000);
+                    }
+                    
+                    // Oprydning for ikke at overbelaste telefonen (sletter gamle platforme bagude)
+                    if (Math.random() < 0.05) {
+                        let cutoff = cameraX - 1000;
+                        platforms = platforms.filter(p => p.x + p.w > cutoff);
+                        enemies = enemies.filter(e => e.x + e.w > cutoff);
+                        coins = coins.filter(c => c.x > cutoff);
+                        bushes = bushes.filter(b => b.x > cutoff);
+                        springboards = springboards.filter(s => s.x > cutoff);
+                        assignments = assignments.filter(a => a.x > cutoff);
+                        bombs = bombs.filter(b => b.x > cutoff);
+                        shurikenPickups = shurikenPickups.filter(s => s.x > cutoff);
+                        projectiles = projectiles.filter(p => p.x > cutoff);
+                        playerProjectiles = playerProjectiles.filter(p => p.x > cutoff);
+                    }
+                }
             } 
 
             for (let i = popEffects.length - 1; i >= 0; i--) {
@@ -1168,7 +1270,6 @@
                 for (let i = enemies.length - 1; i >= 0; i--) {
                     let e = enemies[i];
                     if (!e.dead && checkCol({x: pp.x, y: pp.y, w: pp.w, h: pp.h}, e)) {
-                        // Skade på Alma og andre
                         if (e.type === 'alma') {
                             if (pp.type !== 'shuriken') {
                                 playerProjectiles.splice(j, 1); createParticles(pp.x, pp.y, '#FFF'); playSound('hit');
@@ -1177,7 +1278,7 @@
                                 if (e.hp <= 0) {
                                     e.dead = true;
                                     createExplosion(e.x + e.w/2, e.y + e.h/2, 'car');
-                                    playSound('williamDie'); // Stor bil eksplosion
+                                    playSound('williamDie'); 
                                     screenShake = 30;
                                     registerKill(e.x, e.y);
                                 } else {
@@ -1265,7 +1366,7 @@
                 }
             }
 
-            if (!player.isDead && player.x > goalX && player.y > canvas.height - 250 && gameState !== 'levelComplete') {
+            if (!player.isDead && !isEndless && player.x > goalX && player.y > canvas.height - 250 && gameState !== 'levelComplete') {
                 playSound('win');
                 
                 // Opdater ulåste baner og GEM I BROWSEREN
@@ -1513,10 +1614,13 @@
                 ctx.fillRect(s.x + 5, s.y + squeeze, s.w - 10, 10 - squeeze);
             }
 
-            ctx.fillStyle = '#ddd'; ctx.fillRect(goalX, canvas.height - 300, 10, 250);
-            ctx.fillStyle = '#FFCE00'; ctx.beginPath(); ctx.arc(goalX + 5, canvas.height - 300, 12, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#E3000F'; ctx.beginPath(); ctx.moveTo(goalX + 10, canvas.height - 290);
-            ctx.lineTo(goalX + 80, canvas.height - 260); ctx.lineTo(goalX + 10, canvas.height - 230); ctx.fill();
+            // Tegn kun målstregen, hvis vi IKKE er i uendelig mode
+            if (!isEndless) {
+                ctx.fillStyle = '#ddd'; ctx.fillRect(goalX, canvas.height - 300, 10, 250);
+                ctx.fillStyle = '#FFCE00'; ctx.beginPath(); ctx.arc(goalX + 5, canvas.height - 300, 12, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#E3000F'; ctx.beginPath(); ctx.moveTo(goalX + 10, canvas.height - 290);
+                ctx.lineTo(goalX + 80, canvas.height - 260); ctx.lineTo(goalX + 10, canvas.height - 230); ctx.fill();
+            }
 
             for (let i = 0; i < enemies.length; i++) {
                 let e = enemies[i];
