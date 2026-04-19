@@ -938,6 +938,10 @@
             levelKills++;
             let statKey = player.name === 'Simi' ? 'simi' : 'vega';
             killStats[statKey]++;
+            
+            // GEM KILLS I BROWSEREN
+            localStorage.setItem('sag_killStats', JSON.stringify(killStats));
+            
             score += 5; updateHUD();
             popEffects.push({ type: 'text', text: '+5', x: x, y: y, vy: -2, life: 40, color: '#FFCE00' });
             screenShake = Math.max(screenShake, 8); player.squash = 1.2; 
@@ -1263,7 +1267,12 @@
 
             if (!player.isDead && player.x > goalX && player.y > canvas.height - 250 && gameState !== 'levelComplete') {
                 playSound('win');
-                if (currentLevel >= unlockedLevels[currentCharacter]) unlockedLevels[currentCharacter] = currentLevel + 1;
+                
+                // Opdater ulåste baner og GEM I BROWSEREN
+                if (currentLevel >= unlockedLevels[currentCharacter]) {
+                    unlockedLevels[currentCharacter] = currentLevel + 1;
+                    localStorage.setItem('sag_unlockedLevels', JSON.stringify(unlockedLevels));
+                }
                 
                 gameState = 'levelComplete';
                 document.getElementById('levelCompleteText').innerText = `NIVEAU ${currentLevel} KLARET!`;
@@ -1735,6 +1744,20 @@
         addTouch(document.getElementById('btnRight'), 'right');
         addTouch(document.getElementById('btnShoot'), 'shoot'); 
         addTouch(document.getElementById('btnJump'), 'jump');
+
+        // --- LOCALSTORAGE: Indlæs gemt fremskridt ved opstart ---
+        try {
+            if (localStorage.getItem('sag_unlockedLevels')) {
+                unlockedLevels = JSON.parse(localStorage.getItem('sag_unlockedLevels'));
+            }
+            if (localStorage.getItem('sag_killStats')) {
+                killStats = JSON.parse(localStorage.getItem('sag_killStats'));
+                // Opdater startskærmens rangliste med det samme, så den viser de gemte kills
+                updateRankBoard(document.getElementById('startKillBoard'));
+            }
+        } catch (e) {
+            console.error("Kunne ikke indlæse gemte data", e);
+        }
 
         drawHUDIcons();
         draw();
